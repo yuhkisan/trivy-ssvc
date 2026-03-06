@@ -162,6 +162,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Restore SSVC state
+        uses: actions/cache@v4
+        with:
+          path: ssvc-state.json
+          key: ssvc-state
+
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
@@ -186,9 +192,17 @@ jobs:
             --save-state ssvc-state.json \
             --slack-webhook ${{ secrets.SLACK_WEBHOOK }} \
             --threshold immediate
+
+      - name: Save SSVC state
+        uses: actions/cache/save@v4
+        with:
+          path: ssvc-state.json
+          key: ssvc-state
 ```
 
 **以上です。**
+
+> `ssvc-state.json` の永続化に GitHub Actions の cache を使っています。初回実行時はキャッシュが存在しないため、差分なしで全件を初回スキャン扱いとして処理します。ローカルで使う場合や自前サーバーで運用する場合は、`ssvc-state.json` の保存・参照方法を自分で管理してください。
 
 ### プライベートリポジトリの場合
 
