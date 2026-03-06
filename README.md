@@ -138,7 +138,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: yourname/trivy-ssvc@v1
+      - uses: yuhkisan/trivy-ssvc@v1
         with:
           system_exposure: open
           safety_impact: negligible
@@ -152,7 +152,7 @@ jobs:
 ### プライベートリポジトリの場合
 
 ```yaml
-- uses: yourname/trivy-ssvc@v1
+- uses: yuhkisan/trivy-ssvc@v1
   with:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     system_exposure: open
