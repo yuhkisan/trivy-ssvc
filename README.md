@@ -44,18 +44,8 @@ curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/inst
 
 ## インストール
 
-GitHubの[Releases](https://github.com/yuhkisan/trivy-ssvc/releases)からバイナリをダウンロードしてください。
-
 ```bash
-# Linux (amd64)
-curl -L https://github.com/yuhkisan/trivy-ssvc/releases/latest/download/trivy-ssvc-linux-amd64 -o trivy-ssvc
-chmod +x trivy-ssvc
-sudo mv trivy-ssvc /usr/local/bin/
-
-# macOS (arm64)
-curl -L https://github.com/yuhkisan/trivy-ssvc/releases/latest/download/trivy-ssvc-darwin-arm64 -o trivy-ssvc
-chmod +x trivy-ssvc
-sudo mv trivy-ssvc /usr/local/bin/
+pip install trivy-ssvc
 ```
 
 ## 使い方
@@ -86,7 +76,7 @@ trivy-ssvc \
   --previous-state ssvc-state.json \
   --save-state ssvc-state.json \
   --slack-webhook https://hooks.slack.com/... \
-  --threshold immediate
+  --threshold Scheduled
 ```
 
 ## 引数
@@ -107,7 +97,7 @@ trivy-ssvc \
 | `--previous-state` | なし        | 前回のスキャン結果ファイルのパス（差分検出用） |
 | `--save-state`     | なし        | 今回のスキャン結果の保存先パス                 |
 | `--slack-webhook`  | なし        | Slack Webhook URL                              |
-| `--threshold`      | `immediate` | Slack通知する最低優先度                        |
+| `--threshold`      | `Scheduled` | Slack通知する最低優先度                        |
 | `--output`         | `table`     | 出力形式（`table` / `json`）                   |
 
 ## SSVCの変数について
@@ -176,10 +166,7 @@ jobs:
         run: trivy fs ./ --format json --output vulns.json
 
       - name: Install trivy-ssvc
-        run: |
-          curl -L https://github.com/yuhkisan/trivy-ssvc/releases/latest/download/trivy-ssvc-linux-amd64 -o trivy-ssvc
-          chmod +x trivy-ssvc
-          sudo mv trivy-ssvc /usr/local/bin/
+        run: pip install trivy-ssvc
 
       - name: Apply SSVC
         run: |
@@ -191,7 +178,7 @@ jobs:
             --previous-state ssvc-state.json \
             --save-state ssvc-state.json \
             --slack-webhook ${{ secrets.SLACK_WEBHOOK }} \
-            --threshold immediate
+            --threshold Scheduled
 
       - name: Save SSVC state
         uses: actions/cache/save@v4
