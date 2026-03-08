@@ -1,4 +1,3 @@
-> **Status: Work in Progress** - 現在開発中です。
 
 # trivy-ssvc
 
@@ -88,7 +87,7 @@ trivy-ssvc \
 | `--vulns`           | Trivyのスキャン結果ファイルのパス（JSON形式）                           |
 | `--system-exposure` | システムの露出度（`open` / `controlled` / `small`）                     |
 | `--safety-impact`   | 安全への影響（`negligible` / `marginal` / `critical` / `catastrophic`） |
-| `--mission-impact`  | 業務への影響（`minimal` / `degraded` / `failed`）                       |
+| `--mission-impact`  | 業務への影響（`degraded` / `mef_support_crippled` / `mef_failure` / `mission_failure`） |
 
 ### オプション
 
@@ -99,6 +98,7 @@ trivy-ssvc \
 | `--slack-webhook`  | なし        | Slack Webhook URL                              |
 | `--threshold`      | `Scheduled` | Slack通知する最低優先度                        |
 | `--output`         | `table`     | 出力形式（`table` / `json`）                   |
+| `--no-network`     | なし        | KEV/EPSSを取得せずCVSSで代替する（オフライン用）|
 
 ## SSVCの変数について
 
@@ -107,7 +107,7 @@ trivy-ssvc \
 | ケース                           | system-exposure | safety-impact | mission-impact |
 | -------------------------------- | --------------- | ------------- | -------------- |
 | インターネット公開のWebサービス  | `open`          | `negligible`  | `degraded`     |
-| 社内ツール                       | `controlled`    | `negligible`  | `minimal`      |
+| 社内ツール                       | `controlled`    | `negligible`  | `degraded`     |
 | 医療・自動車など安全に関わる製品 | `controlled`    | `critical`    | `degraded`     |
 
 ## Slackの通知例

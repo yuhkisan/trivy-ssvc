@@ -3,12 +3,12 @@ from __future__ import annotations
 import argparse
 import sys
 
-from trivy_ssvc import trivy, ssvc, state, output, notify
+from trivy_ssvc import trivy, ssvc, state, output, notify, exploit
 
 
 VALID_EXPOSURE = {"open", "controlled", "small"}
 VALID_SAFETY = {"negligible", "marginal", "critical", "catastrophic"}
-VALID_MISSION = {"minimal", "degraded", "failed"}
+VALID_MISSION = {"degraded", "mef_support_crippled", "mef_failure", "mission_failure"}
 VALID_THRESHOLD = {"Defer", "Scheduled", "Out-of-cycle", "Immediate"}
 VALID_OUTPUT = {"table", "json"}
 
@@ -51,6 +51,8 @@ def main() -> None:
                         help="Minimum SSVC status to send Slack notification (default: Scheduled)")
     parser.add_argument("--output", default="table", choices=sorted(VALID_OUTPUT),
                         help="Output format: table or json (default: table)")
+    parser.add_argument("--no-network", action="store_true",
+                        help="KEV/EPSSを取得せずCVSSで代替する（オフライン環境用）")
 
     args = parser.parse_args()
     _validate(args)
@@ -64,27 +66,38 @@ def main() -> None:
 
     vulns = report.vulnerabilities()
 
-    # 2. SSVCスコアを計算する
+    # 2. KEV・EPSSを取得する（失敗したらCVSSで代替）
+    kev_ids = None
+    epss_scores = None
+    if not args.no_network:
+        cve_ids = [v.vuln_id for v in vulns]
+        try:
+            kev_ids = exploit.fetch_kev()
+            epss_scores = exploit.fetch_epss(cve_ids) if cve_ids else {}
+        except Exception as e:
+            print(f"warning: KEV/EPSSの取得に失敗しました。CVSSで代替します: {e}", file=sys.stderr)
+
+    # 3. SSVCスコアを計算する
     params = ssvc.Params(
         system_exposure=args.system_exposure,
         safety_impact=args.safety_impact,
         mission_impact=args.mission_impact,
     )
-    results = ssvc.score_all(vulns, params)
+    results = ssvc.score_all(vulns, params, kev_ids=kev_ids, epss_scores=epss_scores)
 
-    # 3. 前回のstateを読み込む
+    # 4. 前回のstateを読み込む
     prev_state = state.load_file(args.previous_state) if args.previous_state else None
 
-    # 4. 差分を計算する
+    # 5. 差分を計算する
     diff = state.diff(prev_state, results)
 
-    # 5. 結果を出力する
+    # 6. 結果を出力する
     if args.output == "json":
         output.json_output(sys.stdout, results)
     else:
         output.table(sys.stdout, results)
 
-    # 6. Slack通知する
+    # 7. Slack通知する
     if args.slack_webhook:
         threshold = ssvc.Status.parse(args.threshold)
         try:
@@ -92,7 +105,7 @@ def main() -> None:
         except RuntimeError as e:
             print(f"warning: {e}", file=sys.stderr)
 
-    # 7. stateを保存する
+    # 8. stateを保存する
     if args.save_state:
         current_state = state.from_results(results, prev_state)
         state.save_file(args.save_state, current_state)

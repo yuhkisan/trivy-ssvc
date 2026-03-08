@@ -21,10 +21,15 @@ def slack(webhook_url: str, diff: DiffResult, threshold: Status) -> None:
             )
 
     for e in diff.resolved:
-        lines.append(
-            f"[解決] {e.vuln_id} | {e.pkg_name} {e.installed_version}\n"
-            f"脆弱性が解消されました。"
-        )
+        try:
+            resolved_status = Status.parse(e.status)
+        except ValueError:
+            resolved_status = threshold  # パース失敗時は通知する
+        if resolved_status >= threshold:
+            lines.append(
+                f"[解決] {e.vuln_id} | {e.pkg_name} {e.installed_version}\n"
+                f"脆弱性が解消されました。"
+            )
 
     if not lines:
         return

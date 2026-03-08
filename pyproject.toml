@@ -7,9 +7,14 @@ name = "trivy-ssvc"
 version = "0.1.0"
 description = "SSVC prioritization for Trivy vulnerability scan results"
 requires-python = ">=3.9"
-dependencies = [
-    "requests>=2.28",
-]
+dependencies = []
 
 [project.scripts]
 trivy-ssvc = "trivy_ssvc.main:main"
+ssvc-calc = "ssvc_calc.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["trivy_ssvc*", "ssvc_calc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

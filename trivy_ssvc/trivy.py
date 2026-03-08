@@ -55,8 +55,14 @@ class Vulnerability:
         return ""
 
     def is_automatable(self) -> bool:
+        """Estimate whether the vulnerability is automatable from CVSS v3 vector.
+
+        A vulnerability is considered automatable when it can be exploited
+        over the network (AV:N), with low complexity (AC:L), and without
+        requiring any privileges (PR:N).
+        """
         vec = self.v3_vector()
-        return "AV:N" in vec and "AC:L" in vec
+        return "AV:N" in vec and "AC:L" in vec and "PR:N" in vec
 
 
 @dataclass
