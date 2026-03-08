@@ -39,12 +39,16 @@ def score_all(
     params: Params,
     kev_ids: Optional[set[str]] = None,
     epss_scores: Optional[dict[str, float]] = None,
+    epss_threshold: float = 0.1,
 ) -> list[Result]:
     human_impact = decide_human_impact(params.safety_impact, params.mission_impact)
     results = []
     for v in vulns:
         if kev_ids is not None and epss_scores is not None:
-            exploitation = calc_exploitation(v.vuln_id, v.severity, kev_ids, epss_scores)
+            exploitation = calc_exploitation(
+                v.vuln_id, v.severity, kev_ids, epss_scores,
+                epss_threshold=epss_threshold,
+            )
         else:
             exploitation = calc_exploitation_fallback(v.severity)
         automatable = v.is_automatable()

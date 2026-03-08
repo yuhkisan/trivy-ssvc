@@ -98,6 +98,7 @@ trivy-ssvc \
 | `--slack-webhook`  | なし        | Slack Webhook URL                              |
 | `--threshold`      | `Scheduled` | Slack通知する最低優先度                        |
 | `--output`         | `table`     | 出力形式（`table` / `json`）                   |
+| `--epss-threshold` | `0.1`       | EPSSスコアの閾値（これ以上を`poc`扱い）        |
 | `--no-network`     | なし        | KEV/EPSSを取得せずCVSSで代替する（オフライン用）|
 
 ## SSVCの変数について
@@ -153,10 +154,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Restore SSVC state
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ssvc-state.json
-          key: ssvc-state
+          key: ssvc-state-${{ github.run_id }}
+          restore-keys: |
+            ssvc-state-
 
       - name: Install Trivy
         run: |
@@ -184,7 +187,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ssvc-state.json
-          key: ssvc-state
+          key: ssvc-state-${{ github.run_id }}
 ```
 
 **以上です。**

@@ -51,6 +51,8 @@ def main() -> None:
                         help="Minimum SSVC status to send Slack notification (default: Scheduled)")
     parser.add_argument("--output", default="table", choices=sorted(VALID_OUTPUT),
                         help="Output format: table or json (default: table)")
+    parser.add_argument("--epss-threshold", type=float, default=0.1,
+                        help="EPSS score threshold to classify as 'poc' (default: 0.1)")
     parser.add_argument("--no-network", action="store_true",
                         help="KEV/EPSSを取得せずCVSSで代替する（オフライン環境用）")
 
@@ -83,7 +85,8 @@ def main() -> None:
         safety_impact=args.safety_impact,
         mission_impact=args.mission_impact,
     )
-    results = ssvc.score_all(vulns, params, kev_ids=kev_ids, epss_scores=epss_scores)
+    results = ssvc.score_all(vulns, params, kev_ids=kev_ids, epss_scores=epss_scores,
+                             epss_threshold=args.epss_threshold)
 
     # 4. 前回のstateを読み込む
     prev_state = state.load_file(args.previous_state) if args.previous_state else None
