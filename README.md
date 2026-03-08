@@ -189,7 +189,27 @@ jobs:
 
 **以上です。**
 
-> `ssvc-state.json` の永続化に GitHub Actions の cache を使っています。初回実行時はキャッシュが存在しないため、差分なしで全件を初回スキャン扱いとして処理します。ローカルで使う場合や自前サーバーで運用する場合は、`ssvc-state.json` の保存・参照方法を自分で管理してください。
+> **初回実行時の注意:** `--previous-state` で指定したファイルが存在しない場合、検出された脆弱性はすべて「新規」として扱われ、閾値以上のものがSlackに通知されます。
+>
+> 既存の脆弱性が大量にある場合、初回実行で通知が大量に飛ぶ可能性があります。これを避けたい場合は、以下の手順で初回stateを事前に作成してください。
+>
+> ```bash
+> # ローカルで初回実行（--slack-webhook を付けない）
+> trivy fs ./ --format json --output vulns.json
+> trivy-ssvc \
+>   --vulns vulns.json \
+>   --system-exposure open \
+>   --safety-impact negligible \
+>   --mission-impact degraded \
+>   --save-state ssvc-state.json
+>
+> # ssvc-state.json をリポジトリにコミット
+> git add ssvc-state.json
+> git commit -m "初回SSVCスキャン結果を追加"
+> git push
+> ```
+>
+> これにより、GitHub Actions での2回目以降の実行から差分のみが通知されます。
 
 ### プライベートリポジトリの場合
 

@@ -75,7 +75,9 @@ def save_file(path: str, state: State) -> None:
 
 def diff(prev: Optional[State], current: list[Result]) -> DiffResult:
     if prev is None:
-        return DiffResult()
+        # 初回実行: 全件を「新規」として扱う。
+        # 通知するかどうかは --slack-webhook の有無でユーザーが制御する。
+        return DiffResult(added=list(current))
 
     current_keys = {r.key() for r in current}
     added = [r for r in current if r.key() not in prev.entries]
